@@ -1,0 +1,86 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/workspace
+    docker:
+      - image: circleci/node:10
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+      - run:
+          name: Install dependencies
+          command: npm ci
+      - save_cache: # special step to save the dependency cache
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
+      - run:
+          name: Build application
+          command: |
+            set +o pipefail
+            npm run-script build
+            cp LICENSE dist/
+            cp package.json dist/
+            cp package-lock.json dist/
+      - persist_to_workspace:
+          root: ~/workspace
+          paths:
+            - dist
+            - deploy
+  deploy:
+    working_directory: ~/workspace
+    docker:
+      - image: docker:18.06.0-ce
+    steps:
+      - setup_remote_docker
+      - attach_workspace:
+          at: ~/workspace
+      - restore_cache:
+          keys:
+            - v1-{{ .Branch }}
+          paths:
+            - /tmp/app.tar
+      - run:
+          name: Load Docker image layer cache
+          command: |
+            set +o pipefail
+            docker load -i /tmp/app.tar || true
+      - run:
+          name: Build application Docker image
+          command: |
+            docker build --cache-from=app -t app -f deploy/Dockerfile .
+      - save_cache:
+          key: v1-{{ .Branch }}-{{ epoch }}
+          paths:
+            - /tmp/app.tar
+      - run:
+          name: Push to registry
+          command: |
+            if [ -z "$CIRCLE_PROJECT_REPONAME" ]; then exit 0; fi # Disable push for local builds
+            export IMAGE_NAME=$REGISTRY_USERNAME/$CIRCLE_PROJECT_REPONAME
+            docker login -u $REGISTRY_USERNAME -p $REGISTRY_PASSWORD
+            if [ "${CIRCLE_TAG}" != "" ]; then
+              docker tag app $IMAGE_NAME:$CIRCLE_TAG
+              docker tag app $IMAGE_NAME:latest
+              docker push $IMAGE_NAME:$CIRCLE_TAG
+              docker push $IMAGE_NAME:latest
+            else
+              docker tag app $IMAGE_NAME:${CIRCLE_BRANCH#"features/"}
+              docker push $IMAGE_NAME:${CIRCLE_BRANCH#"features/"}
+            fi
+workflows:
+  version: 2
+  build-and-deploy:
+    jobs:
+      - build:
+          filters:
+            tags:
+              only: /.*/
+      - deploy:
+          requires:
+            - build
+          context: hub-registry
+          filters:
+            tags:
+              only: /.*/

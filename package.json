@@ -1,0 +1,23 @@
+{
+  "name": "sqs-to-csv",
+  "version": "1.0.0",
+  "description": "Read JSON messages from SQS Queue and save them to CSV files",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "buildw": "tsc -w",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jérémie COLOMBO",
+  "license": "MIT",
+  "dependencies": {
+    "aws-sdk": "^2.528.0",
+    "chokidar": "^3.0.2",
+    "json2csv": "^4.5.4"
+  },
+  "devDependencies": {
+    "@types/json2csv": "^4.5.0",
+    "@types/node": "^12.7.5",
+    "typescript": "^3.6.3"
+  }
+}

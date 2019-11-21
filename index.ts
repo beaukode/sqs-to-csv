@@ -45,11 +45,11 @@ const parser = new json2csv.Parser({
 function processMessage(messages: AWS.SQS.ReceiveMessageResult) {
   if (messages.Messages) {
     messages.Messages.forEach(function(msg: AWS.SQS.Message) {
-      const org = msg.MessageAttributes["org"].StringValue;
-      const ref = msg.MessageAttributes["ref"].StringValue;
+      const filepath = msg.MessageAttributes["filepath"].StringValue;
+      const filename = msg.MessageAttributes["filename"].StringValue;
       const body = JSON.parse(msg.Body);
-      const destPath = path.join(outDir, org);
-      const dest = path.join(destPath, ref + ".csv");
+      const destPath = path.join(outDir, filepath);
+      const dest = path.join(destPath, filename);
       if (fs.existsSync(destPath)) {
         if (!fs.existsSync(dest)) {
           Log.log("Writing file to", dest);

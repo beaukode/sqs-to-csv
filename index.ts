@@ -44,7 +44,6 @@ const parser = new json2csv.Parser({
 
 function processMessage(messages: AWS.SQS.ReceiveMessageResult) {
   if (messages.Messages) {
-    console.log(messages.Messages.length, "messages");
     messages.Messages.forEach(function(msg: AWS.SQS.Message) {
       const filepath = msg.MessageAttributes["filepath"].StringValue;
       const filename = msg.MessageAttributes["filename"].StringValue;

@@ -45,6 +45,7 @@ const parser = new json2csv.Parser({
 function processMessage(messages: AWS.SQS.ReceiveMessageResult) {
   if (messages.Messages) {
     messages.Messages.forEach(function(msg: AWS.SQS.Message) {
+      console.log(msg);
       const filepath = msg.MessageAttributes["filepath"].StringValue;
       const filename = msg.MessageAttributes["filename"].StringValue;
       const body = JSON.parse(msg.Body);
@@ -74,7 +75,7 @@ function processMessage(messages: AWS.SQS.ReceiveMessageResult) {
           sqs.changeMessageVisibility({
             QueueUrl: queueUrl,
             ReceiptHandle: msg.ReceiptHandle,
-            VisibilityTimeout: 0,
+            VisibilityTimeout: 60,
           });
           Log.log("Output file already exists (no overwrite):", dest);
         }
@@ -87,6 +88,7 @@ function processMessage(messages: AWS.SQS.ReceiveMessageResult) {
 }
 
 function listenNext() {
+  console.log("Listenning for messages");
   sqs
     .receiveMessage({
       QueueUrl: queueUrl,

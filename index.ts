@@ -45,7 +45,7 @@ const parser = new json2csv.Parser({
 function processMessage(messages: AWS.SQS.ReceiveMessageResult) {
   if (messages.Messages) {
     messages.Messages.forEach(function(msg: AWS.SQS.Message) {
-      console.log(msg);
+      Log.log(msg);
       const filepath = msg.MessageAttributes["filepath"].StringValue;
       const filename = msg.MessageAttributes["filename"].StringValue;
       const body = JSON.parse(msg.Body);
@@ -64,13 +64,10 @@ function processMessage(messages: AWS.SQS.ReceiveMessageResult) {
             .promise()
             .then(function() {
               Log.log("SQS Message deleted");
-              listenNext();
             })
             .catch(function(err) {
               Log.error(err, "SQS delete message failed");
-              listenNext();
             });
-          return;
         } else {
           sqs.changeMessageVisibility({
             QueueUrl: queueUrl,
@@ -88,7 +85,7 @@ function processMessage(messages: AWS.SQS.ReceiveMessageResult) {
 }
 
 function listenNext() {
-  console.log("Listenning for messages");
+  Log.log("Listenning for messages");
   sqs
     .receiveMessage({
       QueueUrl: queueUrl,

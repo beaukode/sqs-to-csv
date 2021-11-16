@@ -11,7 +11,7 @@
   "author": "Jérémie COLOMBO",
   "license": "MIT",
   "dependencies": {
-    "aws-sdk": "^2.528.0",
+    "aws-sdk": "^2.814.0",
     "chokidar": "^3.0.2",
     "json2csv": "^4.5.4"
   },
